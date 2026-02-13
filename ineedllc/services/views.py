@@ -42,7 +42,7 @@ class PublicServiceList(APIView):
         return Response({"success": True, "message": "service_list", "data": ServiceSerializer(qs, many=True).data})
 
 
-# ADMIN APIs (create/update)
+# ADMIN APIs
 
 class AdminCategoryListCreate(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
