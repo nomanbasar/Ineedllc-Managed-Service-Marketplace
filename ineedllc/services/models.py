@@ -74,3 +74,4 @@ class ServiceHour(models.Model):
 
     def __str__(self):
         return f"{self.service_id.name} - {self.day_of_week}"
+

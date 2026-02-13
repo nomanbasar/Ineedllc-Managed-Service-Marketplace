@@ -5,6 +5,7 @@ from rest_framework import status
 from django.db import transaction
 from .permissions import IsAdminUserRole
 from .models import ServiceCategory, Service, ServiceHour, ServiceAdditionalFeature
+from .pagination import paginate_queryset
 from .serializers import (
     ServiceCategorySerializer,
     ServiceSerializer,
@@ -14,9 +15,7 @@ from .serializers import (
 )
 
 
-# =========================
 # PUBLIC APIs (frontend)
-# =========================
 
 class PublicCategoryList(APIView):
     permission_classes = [AllowAny]
@@ -43,16 +42,28 @@ class PublicServiceList(APIView):
         return Response({"success": True, "message": "service_list", "data": ServiceSerializer(qs, many=True).data})
 
 
-# =========================
 # ADMIN APIs (create/update)
-# =========================
 
 class AdminCategoryListCreate(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get(self, request):
         qs = ServiceCategory.objects.all().order_by("-created_at")
-        return Response({"success": True, "message": "admin_category_list", "data": ServiceCategorySerializer(qs, many=True).data})
+
+        search = request.query_params.get("search")
+        if search:
+            qs = qs.filter(category_name__icontains=search)
+
+        page_qs, meta = paginate_queryset(qs, request)
+
+        return Response(
+            {
+                "success": True,
+                "message": "admin_category_list",
+                "meta": meta,
+                "data": ServiceCategorySerializer(page_qs, many=True).data,
+            }
+        )
 
     def post(self, request):
         s = ServiceCategorySerializer(data=request.data)
@@ -81,8 +92,28 @@ class AdminServiceListCreate(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get(self, request):
-        qs = Service.objects.all().order_by("-created_at")
-        return Response({"success": True, "message": "admin_service_list", "data": ServiceSerializer(qs, many=True).data})
+        qs = Service.objects.all().select_related("category_id").order_by("-created_at")
+
+        category_id = request.query_params.get("category_id")
+        search = request.query_params.get("search")
+
+        if category_id:
+            qs = qs.filter(category_id_id=category_id)
+
+        if search:
+            qs = qs.filter(name__icontains=search)
+
+        page_qs, meta = paginate_queryset(qs, request)
+
+        return Response(
+            {
+                "success": True,
+                "message": "admin_service_list",
+                "meta": meta,
+                "data": ServiceSerializer(page_qs, many=True).data,
+            }
+        )
+   
 
     def post(self, request):
         s = ServiceSerializer(data=request.data)
