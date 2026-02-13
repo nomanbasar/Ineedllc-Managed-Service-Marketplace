@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-
+    'services',
     'authentication',
 ]
 
@@ -148,7 +148,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-    "EXCEPTION_HANDLER": "ineedllc.exception.custom_exception_handler",
+    "EXCEPTION_HANDLER": "authentication.exception.custom_exception_handler",
 }
 
 SIMPLE_JWT = {
